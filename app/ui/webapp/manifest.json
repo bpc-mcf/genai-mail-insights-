@@ -35,13 +35,19 @@
 	},
 
 	"sap.ui5": {
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
 		"rootView": {
 			"viewName": "ai.ui.view.App",
 			"type": "XML",
 			"async": true,
 			"id": "app"
 		},
-
 		"dependencies": {
 			"minUI5Version": "1.120.0",
 			"libs": {
@@ -51,14 +57,11 @@
 				"sap.ui.layout": {}
 			}
 		},
-
 		"handleValidation": true,
-
 		"contentDensities": {
 			"compact": true,
 			"cozy": true
 		},
-
 		"models": {
 			"i18n": {
 				"type": "sap.ui.model.resource.ResourceModel",
@@ -84,7 +87,6 @@
 				"uri": "model/filters.json"
 			}
 		},
-
 		"routing": {
 			"config": {
 				"routerClass": "sap.m.routing.Router",

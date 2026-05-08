@@ -8,7 +8,7 @@
 >
     <l:FixFlex>
         <l:fixContent>
-            <ShellBar title="{i18n>appTitle}" homeIcon="images/sap-logo.svg">
+            <ShellBar title="{i18n>appTitle}" homeIcon="images/bpc_logo.jpg">
                 <additionalContent>
                     <m:OverflowToolbarButton id="addMail" tooltip="Add Mail" icon="sap-icon://create-form"
                         press="openAddMailDialog" />

@@ -1,0 +1,25 @@
+:root {
+    --sapBrandColor: #009fe3;
+    --sapHighlightColor: #009fe3;
+    --sapSelectedColor: #009fe3;
+    --sapActiveColor: #009fe3;
+    --sapButton_Emphasized_Background: #009fe3;
+    --sapButton_Emphasized_BorderColor: #009fe3;
+    --sapButton_Emphasized_Hover_Background: #0085c0;
+    --sapShellColor: #ffffff;
+    --sapShell_Background: #ffffff;
+    --sapShell_BorderColor: #009fe3;
+    --sapUiShellContainerBackground: #ffffff;
+    --sapUiHighlight: #009fe3;
+    --sapUiBrand: #009fe3;
+    --sapContent_LabelColor: #0d2244;
+    --sapTextColor: #0d2244;
+    --sapTitleColor: #0d2244;
+    --sapLink_Color: #009fe3;
+    --sapLink_Hover_Color: #0085c0;
+}
+
+/* Header Border */
+.sapFShellBar {
+    border-bottom: 3px solid #009fe3 !important;
+}
