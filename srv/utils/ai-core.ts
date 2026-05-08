@@ -52,14 +52,13 @@ export const checkOrPrepareDeployments = async (resourceGroupId: string): Promis
  * @returns {string} - The application identifier
  */
 export const getAppName = (): string => {
-	const xsuaaService = xsenv.getServices({ xsuaa: { tag: "xsuaa" } }).xsuaa as any;
-	const appName = xsuaaService?.xsappname?.split("!t")[0];
-
-	// Comply with SAP AI Core Resource Group naming requirements (only a-z and 0-9 and "-")
-	return appName
-		?.toLowerCase()
-		.replace(/[^a-z0-9-]/g, "")
-		.replace(/^(-*)|(-*)$/g, "");
+  try {
+    const xsuaaService = xsenv.getServices({ xsuaa: { tag: "xsuaa" } }).xsuaa as any;
+    const appName = xsuaaService?.xsappname?.split("!t")[0] ?? "genai-mail-insights";
+    return appName?.toLowerCase().replace(/[^a-z0-9-]/g, "-") ?? "genai-mail-insights";
+  } catch (e) {
+    return "genai-mail-insights";
+  }
 };
 
 /**

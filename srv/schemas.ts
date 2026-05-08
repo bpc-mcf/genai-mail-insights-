@@ -17,12 +17,12 @@ export const MAIL_LANGUAGE_SCHEMA = z.object({
 
 // Custom Schema for Mail Insights extraction
 export const MAIL_INSIGHTS_SCHEMA = z.object({
-	category: z.string().describe(`Classify the email into one the following categories:
-        - Booking Assistance - if the email is asking for help in the process of booking of a travel or hotel stay,
-        - Cancellation or Change - if the email is referring to an existing booking and asks for the booking to be changed or canceled,
-        - Unexpected Problem - if the email is sent during the travel and indicates an urgent problem situation,
-        - Feedback - if the email is related to a previous travel or hotel stay and expresses any sort of positive or negative feedback or complaint.,
-        - General Inquiry - all other emails
+	category: z.string().describe(`Klassifiziere die E-Mail in eine der folgenden Kategorien:
+        - Buchungsunterstützung - wenn die E-Mail um Hilfe beim Buchen einer Reise oder eines Hotels bittet,
+        - Stornierung oder Änderung - wenn die E-Mail sich auf eine bestehende Buchung bezieht und eine Änderung oder Stornierung anfragt,
+        - Unerwartetes Problem - wenn die E-Mail während der Reise gesendet wird und ein dringendes Problem anzeigt,
+        - Feedback - wenn die E-Mail sich auf eine frühere Reise oder einen Hotelaufenthalt bezieht und positives oder negatives Feedback enthält,
+        - Allgemeine Anfrage - alle anderen E-Mails
         `),
 	sender: z
 		.string()
@@ -120,8 +120,8 @@ export const MAIL_RESPONSE_SCHEMA = z
 	.object({
 		responseBody: z.string().transform((responseBody) => responseBody.replace(/\\\\n/g, "\n"))
 			.describe(`Formulate a response to the mail acting as customer service, include the additional information given in this text.
-                Formulate the response in the same language as the original. The signature of the response will be "Your ThorTours Team".`)
+                Formulate the response in the same language as the original. The signature of the response will be "Ihr bpc Team".`)
 	})
 	.describe(
-		`You are working on an incoming mail addressing a travel agency. Formulate a response. Return a clean and valid JSON format.`
+		`Formuliere eine Antwort auf die E-Mail als Kundenservice. Die Signatur der Antwort lautet "Ihr bpc Team".`
 	);

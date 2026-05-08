@@ -132,7 +132,7 @@ resources:
       service: xsuaa
       service-name: ${space}-genai-mail-insights-uaa
       service-plan: application
-      xsuaa-app: genai-mail-insights-${space}-${org}
+      xsuaa-app: genai-mail-insights
       config:
         xsappname: ${xsuaa-app}
         tenant-mode: dedicated

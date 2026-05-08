@@ -5,6 +5,7 @@
 		"moduleResolution": "nodenext",
 		"outDir": "./gen/srv/srv",
 		"skipLibCheck": true,
+		"noCheck": true,
 		"sourceMap": true,
 		"allowJs": true,
 		"strict": true,

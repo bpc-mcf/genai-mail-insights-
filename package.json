@@ -32,7 +32,8 @@
 		"eslint": "9.20.1",
 		"npm-run-all": "4.1.5",
 		"prettier": "3.5.0",
-		"typescript": "5.7.3"
+		"tsx": "^4.21.0",
+		"typescript": "^5.7.3"
 	},
 	"scripts": {
 		"start": "cds-serve",
@@ -44,7 +45,7 @@
 		"lint": "eslint . --cache && prettier . --check --cache",
 		"---BUILD---": "",
 		"build": "npm run build:cds && npm run build:ui && npm run build:ts",
-		"build:ts": "tsc",
+		"build:ts": "node --max-old-space-size=8192 node_modules/typescript/bin/tsc",
 		"build:cds": "cds-ts build --profile production",
 		"build:ui": "npm run build --prefix ./app/ui/ && npm run copy --prefix ./app/ui/",
 		"cleanup:ts": "npx shx rm -r \"./gen/**/*.{ts,tsconfig}\"",
@@ -63,5 +64,29 @@
 	},
 	"engines": {
 		"node": ">=20"
+	},
+	"cds": {
+		"requires": {
+			"auth": {
+				"kind": "mocked",
+				"users": {
+					"arugen": {
+						"password": "pass",
+						"roles": ["Member", "Admin", "system-user"]
+					}
+				}
+			},
+			"[hybrid]": {
+				"auth": {
+					"kind": "mocked",
+					"users": {
+						"arugen": {
+							"password": "pass",
+							"roles": ["Member", "Admin", "system-user"]
+						}
+					}
+				}
+			}
+		}
 	}
 }

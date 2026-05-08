@@ -1,74 +1,74 @@
 {
-	"requestStates": [
-		{
-			"id": "00",
-			"label": "Unanswered"
-		},
-		{
-			"id": "01",
-			"label": "Answered"
-		}
-	],
-	"categories": [
-		{
-			"id": "00",
-			"label": "Booking Assistance"
-		},
-		{
-			"id": "01",
-			"label": "Cancellation"
-		},
-		{
-			"id": "02",
-			"label": "Feedback"
-		},
-		{
-			"id": "03",
-			"label": "General Inquiry"
-		},
-		{
-			"id": "04",
-			"label": "Post-Trip Complaint"
-		},
-		{
-			"id": "05",
-			"label": "Problem During Travel"
-		},
-		{
-			"id": "06",
-			"label": "Special Requests"
-		},
-		{
-			"id": "07",
-			"label": "Unexpected Problem"
-		}
-	],
-	"urgency": [
-		{
-			"id": "00",
-			"label": "Low"
-		},
-		{
-			"id": "01",
-			"label": "Medium"
-		},
-		{
-			"id": "02",
-			"label": "High"
-		}
-	],
-	"sentiment": [
-		{
-			"id": "00",
-			"label": "Calm"
-		},
-		{
-			"id": "01",
-			"label": "Worried"
-		},
-		{
-			"id": "02",
-			"label": "Agitated"
-		}
-	]
+        "requestStates": [
+                {
+                        "id": "00",
+                        "label": "Unbeantwortet"
+                },
+                {
+                        "id": "01",
+                        "label": "Beantwortet"
+                }
+        ],
+        "categories": [
+                {
+                        "id": "00",
+                        "label": "Buchungsunterstützung"
+                },
+                {
+                        "id": "01",
+                        "label": "Stornierung oder Änderung"
+                },
+                {
+                        "id": "02",
+                        "label": "Feedback"
+                },
+                {
+                        "id": "03",
+                        "label": "Allgemeine Anfrage"
+                },
+                {
+                        "id": "04",
+                        "label": "Beschwerde nach Reise"
+                },
+                {
+                        "id": "05",
+                        "label": "Problem während Reise"
+                },
+                {
+                        "id": "06",
+                        "label": "Sonderwünsche"
+                },
+                {
+                        "id": "07",
+                        "label": "Unerwartetes Problem"
+                }
+        ],
+        "urgency": [
+                {
+                        "id": "00",
+                        "label": "Niedrig"
+                },
+                {
+                        "id": "01",
+                        "label": "Mittel"
+                },
+                {
+                        "id": "02",
+                        "label": "Hoch"
+                }
+        ],
+        "sentiment": [
+                {
+                        "id": "00",
+                        "label": "Ruhig"
+                },
+                {
+                        "id": "01",
+                        "label": "Besorgt"
+                },
+                {
+                        "id": "02",
+                        "label": "Aufgeregt"
+                }
+        ]
 }
