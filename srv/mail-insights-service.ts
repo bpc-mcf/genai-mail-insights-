@@ -1,5 +1,6 @@
 import cds from "@sap/cds";
 import { AzureOpenAiChatClient, AzureOpenAiEmbeddingClient } from "@sap-ai-sdk/langchain";
+import nodemailer from "nodemailer";
 
 import { z } from "zod";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -19,6 +20,7 @@ import type { Mail, Translation } from "#cds-models/MailInsightsService";
  */
 export default class MailInsights extends cds.ApplicationService {
 	private resourceGroupId: string;
+	private transporter: any;
 
 	/**
 	 * Initiate MailInsights instance
@@ -26,6 +28,18 @@ export default class MailInsights extends cds.ApplicationService {
 	 */
 	async init(): Promise<void> {
 		await super.init();
+		
+		// Initialize SMTP transporter for Gmail
+		this.transporter = nodemailer.createTransport({
+			host: "smtp.gmail.com",
+			port: 587,
+			secure: false,
+			auth: {
+				user: "saraasalhaa123@gmail.com",
+				pass: "nyxy gliw johq yjad"
+			}
+		});
+
 		// Functions & Actions
 		this.on("getMails", this.onGetMails);
 		this.on("getMail", this.onGetMail);
@@ -238,8 +252,22 @@ export default class MailInsights extends cds.ApplicationService {
 					? response
 					: (await this.translateResponse(response, mail.languageNameDetermined)).responseBody;
 
-			// Implement your custom logic to send e-mail e.g. using Microsoft Graph API
-			// Send the working language response + target language translation + AI Translation Disclaimer;
+			// ============================================================================
+			// E-MAIL VERSAND VIA SMTP (GMAIL)
+			// ============================================================================
+			try {
+				await this.sendEmailViaSMTP({
+					recipient: mail.senderEmailAddress,
+					subject: `Re: ${mail.subject}`,
+					body: translation,
+					workingLanguageResponse: response
+				});
+				console.log(`✅ Email successfully sent to ${mail.sender}`);
+			} catch (emailError: any) {
+				console.error(`❌ Email sending failed: ${emailError?.message}`);
+			}
+			// ============================================================================
+
 			const submittedMail = {
 				...mail,
 				responded: true,
@@ -251,6 +279,52 @@ export default class MailInsights extends cds.ApplicationService {
 		} catch (error: any) {
 			console.error(`Error: ${error?.message}`);
 			return req.error(`Error: ${error?.message}`);
+		}
+	};
+
+	/**
+	 * Send Email via SMTP (Gmail)
+	 * @async
+	 * @param {Object} emailData - Email data object
+	 * @param {string} emailData.recipient - Recipient email address
+	 * @param {string} emailData.subject - Email subject
+	 * @param {string} emailData.body - Email body (HTML or plain text)
+	 * @param {string} [emailData.workingLanguageResponse] - Optional: Original response in working language
+	 * @returns {Promise<any>} - Returns the response from nodemailer
+	 */
+	private sendEmailViaSMTP = async (emailData: {
+		recipient: string;
+		subject: string;
+		body: string;
+		workingLanguageResponse?: string;
+	}): Promise<any> => {
+		try {
+			const mailOptions = {
+				from: "saraasalhaa123@gmail.com",
+				to: emailData.recipient,
+				subject: emailData.subject,
+				html: `
+					<html>
+						<body style="font-family: Arial, sans-serif;">
+							<p>${emailData.body.replace(/\n/g, "<br/>")}</p>
+							<hr style="margin-top: 30px; border: none; border-top: 1px solid #ccc;">
+							<p style="color: #666; font-size: 12px; margin-top: 20px;">
+								<strong>bpc E-Mail Insights</strong><br/>
+								Diese E-Mail wurde automatisch von unserem KI-Assistenten generiert.<br/>
+								Bei Fragen kontaktieren Sie bitte unser Team.
+							</p>
+						</body>
+					</html>
+				`
+			};
+
+			const result = await this.transporter.sendMail(mailOptions);
+			console.log("📧 SMTP Response:", result);
+			return result;
+		} catch (error: any) {
+			console.error(`Error sending email via SMTP: ${error?.message}`);
+			console.error(`Error details:`, error);
+			throw new Error(`Email sending failed: ${error?.message}`);
 		}
 	};
 

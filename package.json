@@ -17,7 +17,9 @@
     "@sap/cds": "8.7.1",
     "@sap/xsenv": "5.4.0",
     "express": "4.21.2",
+    "imap": "^0.8.19",
     "langchain": "0.3.15",
+    "nodemailer": "^8.0.8",
     "zod": "3.24.2"
   },
   "devDependencies": {

@@ -1,25 +1,107 @@
-:root {
-    --sapBrandColor: #009fe3;
-    --sapHighlightColor: #009fe3;
-    --sapSelectedColor: #009fe3;
-    --sapActiveColor: #009fe3;
-    --sapButton_Emphasized_Background: #009fe3;
-    --sapButton_Emphasized_BorderColor: #009fe3;
-    --sapButton_Emphasized_Hover_Background: #0085c0;
-    --sapShellColor: #ffffff;
-    --sapShell_Background: #ffffff;
-    --sapShell_BorderColor: #009fe3;
-    --sapUiShellContainerBackground: #ffffff;
-    --sapUiHighlight: #009fe3;
-    --sapUiBrand: #009fe3;
-    --sapContent_LabelColor: #0d2244;
-    --sapTextColor: #0d2244;
-    --sapTitleColor: #0d2244;
-    --sapLink_Color: #009fe3;
-    --sapLink_Hover_Color: #0085c0;
+/* ===== bpc COMPLETE REDESIGN ===== */
+
+/* HEADER */
+.sapFShellBar {
+    background: #ffffff !important;
+    border-bottom: 3px solid #009fe3 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+.sapFShellBarTitle {
+    color: #009fe3 !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+}
+.sapFShellBar .sapMBtn .sapMBtnInner {
+    color: #0d2244 !important;
+    background: transparent !important;
+    border: none !important;
 }
 
-/* Header Border */
-.sapFShellBar {
-    border-bottom: 3px solid #009fe3 !important;
+/* SIDEBAR */
+.sapMPanelContent {
+    background: #f8f9fa !important;
+}
+.sapMPanelHdr {
+    background: #f8f9fa !important;
+    color: #0d2244 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}
+
+/* TABS */
+.sapMITBFilter.sapMITBSelected .sapMITBText {
+    color: #009fe3 !important;
+    font-weight: 600 !important;
+}
+.sapMITBSelected::after,
+.sapMITB.sapMITBSelected::after {
+    background: #009fe3 !important;
+}
+.sapMITBText {
+    color: #0d2244 !important;
+}
+
+/* BUTTONS */
+.sapMBtnEmphasized .sapMBtnInner,
+.sapMBtn.sapMBtnEmphasized .sapMBtnInner {
+    background: #009fe3 !important;
+    border-color: #009fe3 !important;
+    color: #ffffff !important;
+}
+.sapMBtn .sapMBtnInner:hover {
+    background: #0085c0 !important;
+}
+
+/* LINKS */
+.sapMLnk {
+    color: #009fe3 !important;
+}
+
+/* INBOX HEADER */
+.sapMTitle {
+    color: #0d2244 !important;
+}
+
+/* SELECTED MAIL ITEM */
+.sapMListItem.sapMLIBSelected,
+.sapMLIB.sapMLIBSelected {
+    background: #e8f5fc !important;
+    border-left: 3px solid #009fe3 !important;
+}
+
+/* BADGES / TAGS */
+.sapMObjectStatus.sapMObjectStatusStateError .sapMObjectStatusText {
+    color: #cc0000 !important;
+}
+
+/* AVATAR */
+.sapFAvatar {
+    background: #009fe3 !important;
+    color: #ffffff !important;
+}
+
+/* PANEL SECTIONS */
+.sapUiSizeCompact .sapMPanelContent {
+    padding: 8px 12px !important;
+}
+
+/* SEARCH FIELD */
+.sapMSF .sapMSFF {
+    border-color: #009fe3 !important;
+}
+.sapMSF .sapMSFF:focus-within {
+    border-color: #009fe3 !important;
+    box-shadow: 0 0 0 2px rgba(0,159,227,0.2) !important;
+}
+
+/* CHECKBOXES */
+.sapMCb.sapMCbChecked .sapMCbBg {
+    background: #009fe3 !important;
+    border-color: #009fe3 !important;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar-thumb {
+    background: #009fe3 !important;
+    border-radius: 4px !important;
 }
