@@ -38,3 +38,7 @@ service MailInsightsService @(
     // Revoke answered status
     action   revokeResponse(id : UUID)                                                              returns Boolean;
 };
+
+extend service MailInsightsService {
+  action fetchEmails() returns { success: Boolean; count: Integer; };
+}

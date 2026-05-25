@@ -1,6 +1,7 @@
 import cds from "@sap/cds";
 import { AzureOpenAiChatClient, AzureOpenAiEmbeddingClient } from "@sap-ai-sdk/langchain";
 import nodemailer from "nodemailer";
+import { MailReceiver } from "./mail-receiver.js";
 
 import { z } from "zod";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -14,22 +15,13 @@ import { ACTIONS } from "./constants.js";
 
 import type { Mail, Translation } from "#cds-models/MailInsightsService";
 
-/**
- * Class representing MailInsights
- * @extends ApplicationService
- */
 export default class MailInsights extends cds.ApplicationService {
 	private resourceGroupId: string;
 	private transporter: any;
 
-	/**
-	 * Initiate MailInsights instance
-	 * @returns {Promise<void>}
-	 */
 	async init(): Promise<void> {
 		await super.init();
 		
-		// Initialize SMTP transporter for Gmail
 		this.transporter = nodemailer.createTransport({
 			host: "smtp.gmail.com",
 			port: 587,
@@ -40,7 +32,6 @@ export default class MailInsights extends cds.ApplicationService {
 			}
 		});
 
-		// Functions & Actions
 		this.on("getMails", this.onGetMails);
 		this.on("getMail", this.onGetMail);
 		this.on("addMails", this.onAddMails);
@@ -48,23 +39,21 @@ export default class MailInsights extends cds.ApplicationService {
 		this.on("submitResponse", this.onSubmitResponse);
 		this.on("revokeResponse", this.onRevokeResponse);
 		this.on("generateResponse", this.onGenerateResponse);
+		this.on("fetchEmails", this.fetchAndImportEmails);
 
 		this.resourceGroupId = getAppName();
 		checkOrPrepareDeployments(this.resourceGroupId);
 
-		// listen to all topics
-		/* const messaging = await cds.connect.to('messaging');
-        messaging.on('*', msg => {
-            console.info('EVENT!');
-            console.warn(msg.data);
-        }); */
+		// Beim Start E-Mails abrufen
+		(async () => {
+			try {
+				await this.fetchAndImportEmails();
+			} catch (err: any) {
+				console.error("Initial fetch failed:", err);
+			}
+		})();
 	}
 
-	/**
-	 * Handler for getting mails action
-	 * @param {Request} req
-	 * @returns {Promise<any>}
-	 */
 	private onGetMails = async (req: cds.Request): Promise<IBaseMail | Error> => {
 		try {
 			const { Mails } = this.entities;
@@ -83,11 +72,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Handler for getting a single mail
-	 * @param {Request} req
-	 * @returns {Promise<any>}
-	 */
 	private onGetMail = async (req: cds.Request): Promise<any | Error> => {
 		try {
 			const { id } = req.data;
@@ -105,7 +89,6 @@ export default class MailInsights extends cds.ApplicationService {
 				})
 				.where(`ID = '${id}'`);
 
-			// Add default descriptions for actions
 			mail.suggestedActions = mail.suggestedActions?.map((suggestedAction: IAction) => {
 				return {
 					...suggestedAction,
@@ -132,9 +115,9 @@ export default class MailInsights extends cds.ApplicationService {
 							m.sender;
 							m.responded;
 							m.responseBody;
-							// @ts-ignore
+							//@ts-ignore
 							m.translation((t: Translation) => {
-								// @ts-ignore
+								//@ts-ignore
 								t`.*`;
 							});
 						}).where({
@@ -144,7 +127,6 @@ export default class MailInsights extends cds.ApplicationService {
 						})
 					: [];
 
-			// merge similarity mails with actual mails
 			const closestMailsWithSimilarity: { similarity: number; mail: any } = closestMails.map((mail: IBaseMail) => {
 				const matchingMail: MailWithSimilarity = closestMailsIndex[mail.ID];
 				return { similarity: matchingMail.similarity, mail };
@@ -157,18 +139,12 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Handler for adding mails
-	 * @param {Request} req
-	 * @returns {Promise<any>}
-	 */
 	private onAddMails = async (req: cds.Request): Promise<Array<IBaseMail> | Error> => {
 		try {
 			const { Mails } = this.entities;
 			const { mails, rag } = req.data;
 			const mailBatch = await this.generateInsights(mails, rag);
 
-			// insert mails with insights
 			await INSERT.into(Mails).entries(mailBatch);
 
 			const insertedMails = await SELECT.from(Mails, (m: any) => {
@@ -183,19 +159,6 @@ export default class MailInsights extends cds.ApplicationService {
 				ID: { in: mailBatch.map((mail: any) => mail.ID) }
 			});
 
-			/* const messaging = await cds.connect.to('messaging');
-            await messaging.emit({
-                event: 'sap/btp/pbc/demo1',
-                data: mails,
-                headers: {'X-Correlation-ID': req.headers['X-Correlation-ID']}
-            });
-            // listen to all topics
-            messaging.on('*', msg => {
-                console.info('EVENT!');
-                console.warn(msg.data);
-            }); */
-
-			// Add default descriptions for actions
 			insertedMails.forEach((mail: any) => {
 				mail.suggestedActions = mail.suggestedActions?.map((suggestedAction: IAction) => {
 					return {
@@ -212,12 +175,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Method to regenerate Response for a single Mail
-	 * @async
-	 * @param {Request} req - Request object
-	 * @returns {Promise<boolean|*>}
-	 */
 	private onGenerateResponse = async (req: cds.Request): Promise<boolean | any> => {
 		try {
 			const { id, rag, additionalInformation } = req.data;
@@ -231,12 +188,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Method to submit response for a single Mail. Response always passed in user's working language
-	 * @async
-	 * @param {Request} req - Request object
-	 * @returns {Promise<boolean|*>}
-	 */
 	private onSubmitResponse = async (req: cds.Request): Promise<boolean | any> => {
 		try {
 			const { id, response } = req.data;
@@ -246,15 +197,11 @@ export default class MailInsights extends cds.ApplicationService {
 				m.translation((t: any) => t("*"));
 			});
 
-			// Translate working language response to recipient's original language
 			const translation =
 				mail.languageMatch === undefined || mail.languageMatch
 					? response
 					: (await this.translateResponse(response, mail.languageNameDetermined)).responseBody;
 
-			// ============================================================================
-			// E-MAIL VERSAND VIA SMTP (GMAIL)
-			// ============================================================================
 			try {
 				await this.sendEmailViaSMTP({
 					recipient: mail.senderEmailAddress,
@@ -266,7 +213,6 @@ export default class MailInsights extends cds.ApplicationService {
 			} catch (emailError: any) {
 				console.error(`❌ Email sending failed: ${emailError?.message}`);
 			}
-			// ============================================================================
 
 			const submittedMail = {
 				...mail,
@@ -282,16 +228,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Send Email via SMTP (Gmail)
-	 * @async
-	 * @param {Object} emailData - Email data object
-	 * @param {string} emailData.recipient - Recipient email address
-	 * @param {string} emailData.subject - Email subject
-	 * @param {string} emailData.body - Email body (HTML or plain text)
-	 * @param {string} [emailData.workingLanguageResponse] - Optional: Original response in working language
-	 * @returns {Promise<any>} - Returns the response from nodemailer
-	 */
 	private sendEmailViaSMTP = async (emailData: {
 		recipient: string;
 		subject: string;
@@ -328,12 +264,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Method to revoke responded status for a single mail
-	 * @async
-	 * @param {Request} req - Request object
-	 * @returns {Promise<boolean|*>}
-	 */
 	private onRevokeResponse = async (req: cds.Request): Promise<boolean | any> => {
 		try {
 			const { id } = req.data;
@@ -346,11 +276,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Handler for deleting a mail
-	 * @param {Request} req
-	 * @returns {Promise<any>}
-	 */
 	private onDeleteMail = async (req: cds.Request): Promise<any> => {
 		try {
 			const { id } = req.data;
@@ -363,14 +288,7 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * (Re-)Generate Insights, Response(s), Translation(s) and Embeddings for single or multiple Mail(s)
-	 * @param {Array<IBaseMail>} mails - array of mails
-	 * @param {boolean} rag - flag to denote if RAG status should be considered
-	 * @returns Promise object represents the translated mails
-	 */
 	private generateInsights = async (mails: Array<IBaseMail>, rag: boolean = false) => {
-		// Add unique ID to mails if not existent
 		mails.forEach((mail) => {
 			mail.ID ??= crypto.randomUUID();
 		});
@@ -405,13 +323,6 @@ export default class MailInsights extends cds.ApplicationService {
 		return mailsWithTranslation;
 	};
 
-	/**
-	 * (Re-)Generate Response for a single Mail
-	 * @param {IStoredMail} mail - stored mail
-	 * @param {boolean} rag - flag to denote if RAG status should be considered
-	 * @param {string} additionalInformation - additional information for the response
-	 * @returns {Promise<IStoredMail>} Promise object represents the stored mail with regenerated response
-	 */
 	private generateResponse = async (
 		mail: IStoredMail,
 		rag: boolean = false,
@@ -430,7 +341,6 @@ export default class MailInsights extends cds.ApplicationService {
 			translation.responseBody = translatedResponse.responseBody;
 		}
 
-		// Add default descriptions for actions
 		mail.suggestedActions = mail.suggestedActions?.map((suggestedAction: IAction) => {
 			return {
 				...suggestedAction,
@@ -445,20 +355,12 @@ export default class MailInsights extends cds.ApplicationService {
 		};
 	};
 
-	/**
-	 * Extract insights for mails using LLM.
-	 * @param {Array<IBaseMail>} mails - Array of mails to extract insights from.
-	 * @returns {Promise<Array<IProcessedMail>>} - A promise that resolves to an array of processed mails.
-	 */
 	private extractGeneralInsights = async (mails: Array<IBaseMail>): Promise<Array<IProcessedMail>> => {
-		// langchain wrapper for language model
 		const llm = getChatModel(this.resourceGroupId);
-		// parser
 		const parser = StructuredOutputParser.fromZodSchema(schemas.MAIL_INSIGHTS_SCHEMA);
 		const formatInstructions = parser.getFormatInstructions();
 		const parserWithFix = OutputFixingParser.fromLLM(llm, parser);
 
-		// prompt template
 		const promptTemplate = await ChatPromptTemplate.fromMessages([
 			[
 				"system",
@@ -466,12 +368,10 @@ export default class MailInsights extends cds.ApplicationService {
 			],
 			["user", "{subject}\n{body}"]
 		]).partial({ formatInstructions });
-		// chain together template, client, and parser
 		const llmChain = promptTemplate.pipe(llm).pipe(parserWithFix);
 
 		const mailsInsights = await Promise.all(
 			mails.map(async (mail: IBaseMail): Promise<IProcessedMail> => {
-				// invoke the chain
 				const response = await llmChain.invoke({
 					subject: mail.subject,
 					body: mail.body
@@ -485,21 +385,12 @@ export default class MailInsights extends cds.ApplicationService {
 		return mailsInsights;
 	};
 
-	/**
-	 * Generate potential Response(s) using LLM.
-	 * @param {Array<IBaseMail>} mails - An array of mails.
-	 * @param {boolean} rag - A flag to control retrieval augmented generation usage.
-	 * @param {string} additionalInformation - Additional information for mail response.
-	 * @return {Promise} - Returns a Promise that resolves to an array of potential responses.
-	 */
 	private preparePotentialResponses = async (
 		mails: Array<IBaseMail>,
 		rag: boolean = false,
 		additionalInformation?: string
 	): Promise<any> => {
-		// langchain wrapper for language model
 		const llm = getChatModel(this.resourceGroupId);
-		// parser
 		const parser = StructuredOutputParser.fromZodSchema(schemas.MAIL_RESPONSE_SCHEMA);
 		const formatInstructions = parser.getFormatInstructions();
 		const parserWithFix = OutputFixingParser.fromLLM(llm, parser);
@@ -521,7 +412,6 @@ export default class MailInsights extends cds.ApplicationService {
 			["user", "{subject}\n{body}"]
 		]).partial({ formatInstructions });
 
-		// chain together template, client, and parser
 		const llmChain = promptTemplate.pipe(llm).pipe(parserWithFix);
 
 		const potentialResponses = await Promise.all(
@@ -546,20 +436,12 @@ export default class MailInsights extends cds.ApplicationService {
 		return potentialResponses;
 	};
 
-	/**
-	 * Extract Language Match(es) using LLM.
-	 * @param {Array<IBaseMail>} mails - An array of mails.
-	 * @return {Promise} - Returns a Promise that resolves to an array of language matches.
-	 */
 	private extractLanguageMatches = async (mails: Array<IBaseMail>): Promise<any> => {
-		// langchain wrapper for language model
 		const llm = getChatModel(this.resourceGroupId);
-		// parser
 		const parser = StructuredOutputParser.fromZodSchema(schemas.MAIL_LANGUAGE_SCHEMA);
 		const formatInstructions = parser.getFormatInstructions();
 		const parserWithFix = OutputFixingParser.fromLLM(llm, parser);
 
-		// prompt template
 		const promptTemplate = await ChatPromptTemplate.fromMessages([
 			[
 				"system",
@@ -567,12 +449,10 @@ export default class MailInsights extends cds.ApplicationService {
 			],
 			["user", "{mail}"]
 		]).partial({ formatInstructions });
-		// chain together template, client, and parser
 		const llmChain = promptTemplate.pipe(llm).pipe(parserWithFix);
 
 		const languageMatches = await Promise.all(
 			mails.map(async (mail: IBaseMail) => {
-				// invoke the chain
 				const languageMatch: z.infer<typeof schemas.MAIL_LANGUAGE_SCHEMA> = await llmChain.invoke({
 					mail: mail.body
 				});
@@ -584,11 +464,6 @@ export default class MailInsights extends cds.ApplicationService {
 		return languageMatches;
 	};
 
-	/**
-	 * Create Embeddings
-	 * @param {Array<IBaseMail>} mails - An array of mails.
-	 * @return {Promise} - Returns a Promise that resolves to an array of embeddings.
-	 */
 	private createEmbeddings = async (mails: Array<IBaseMail>): Promise<any> => {
 		const embed = getEmbeddingModel(this.resourceGroupId);
 		const embeddings = await Promise.all(
@@ -602,20 +477,12 @@ export default class MailInsights extends cds.ApplicationService {
 		return embeddings;
 	};
 
-	/**
-	 * Translates Insight(s) using LLM.
-	 * @param {Array<IProcessedMail>} mails - An array of processed mails.
-	 * @return {Promise} - Returns a Promise that resolves to an array of translations.
-	 */
 	private addTranslatedInsights = async (mails: Array<IProcessedMail>): Promise<Array<IBaseMail>> => {
-		// langchain wrapper for language model
 		const llm = getChatModel(this.resourceGroupId);
-		// parser
 		const parser = StructuredOutputParser.fromZodSchema(schemas.MAIL_INSIGHTS_TRANSLATION_SCHEMA);
 		const formatInstructions = parser.getFormatInstructions();
 		const parserWithFix = OutputFixingParser.fromLLM(llm, parser);
 
-		// prompt template
 		const promptTemplate = await ChatPromptTemplate.fromMessages([
 			[
 				"system",
@@ -623,7 +490,6 @@ export default class MailInsights extends cds.ApplicationService {
 			],
 			["user", "{insights}"]
 		]).partial({ formatInstructions });
-		// chain together template, client, and parser
 		const llmChain = promptTemplate.pipe(llm).pipe(parserWithFix);
 
 		const translations = await Promise.all(
@@ -669,22 +535,13 @@ export default class MailInsights extends cds.ApplicationService {
 		});
 	};
 
-	/**
-	 * Translates a single response using LLM.
-	 * @param {string} response - The response text.
-	 * @param {string} language - The language for translation.
-	 * @return {Promise} - Returns a Promise that resolves to the translated response.
-	 */
 	private translateResponse = async (response: string, language: string): Promise<any> => {
 		try {
-			// langchain wrapper for language model
 			const llm = getChatModel(this.resourceGroupId);
-			// parser
 			const parser = StructuredOutputParser.fromZodSchema(schemas.MAIL_INSIGHTS_TRANSLATION_SCHEMA);
 			const formatInstructions = parser.getFormatInstructions();
 			const parserWithFix = OutputFixingParser.fromLLM(llm, parser);
 
-			// prompt template
 			const promptTemplate = await ChatPromptTemplate.fromMessages([
 				[
 					"system",
@@ -694,9 +551,7 @@ export default class MailInsights extends cds.ApplicationService {
 				],
 				["user", "{response}"]
 			]).partial({ formatInstructions });
-			// chain together template, client, and parser
 			const llmChain = promptTemplate.pipe(llm).pipe(parserWithFix);
-			// invoke the chain
 			const translation: z.infer<typeof schemas.MAIL_RESPONSE_TRANSLATION_SCHEMA> = await llmChain.invoke({
 				response: response
 			});
@@ -709,11 +564,6 @@ export default class MailInsights extends cds.ApplicationService {
 		}
 	};
 
-	/**
-	 * Get responses of 5 closest Mails.
-	 * @param {string} id - ID of the mail for which the closest responses need to be fetched.
-	 * @return {Promise<Array<[TypeORMVectorStoreDocument]>>} - Returns a Promise that resolves to an array of closest responses.
-	 */
 	private getClosestResponses = async (id: string): Promise<Array<string>> => {
 		const closestMails = await this.getClosestMailIDsWithSimilarity(id, 5, true);
 		if (closestMails.length === 0) {
@@ -737,13 +587,6 @@ export default class MailInsights extends cds.ApplicationService {
 		return responses;
 	};
 
-	/**
-	 * Get closest mails.
-	 * @param {string} id - The id of the mail.
-	 * @param {number} k - The number of closest mails to fetch (default value is 5).
-	 * @param {boolean} responded - Only consider responded mails for similarity search
-	 * @return {Promise<Array<[TypeORMVectorStoreDocument, number]>>} - Returns a Promise that resolves to an array of closest mails.
-	 */
 	private getClosestMailIDsWithSimilarity = async (
 		id: string,
 		k: number = 5,
@@ -771,6 +614,31 @@ export default class MailInsights extends cds.ApplicationService {
 
 		return mailsWithSimilarity;
 	};
+
+	private fetchAndImportEmails = async () => {
+		try {
+			console.log("📧 Fetching emails from service@mcf.bpc.ag...");
+			const receiver = new MailReceiver();
+			const emails = await receiver.fetchEmails();
+			console.log(`✅ Found ${emails.length} emails`);
+			
+			if (emails.length > 0) {
+				// Nur die 3 benötigten Felder übergeben (BaseMail kompatibel)
+				const baseEmails = emails.map((email: any) => ({
+					subject: email.subject,
+					body: email.body,
+					senderEmailAddress: email.senderEmailAddress
+				}));
+
+				await this.addMails({ mails: baseEmails });
+				console.log("✅ Emails imported successfully");
+			}
+			return { success: true, count: emails.length };
+		} catch (err: any) {
+			console.error("❌ Error fetching emails:", err.message);
+			throw err;
+		}
+	}
 }
 
 const getChatModel = (resourceGroupId: string) => {
