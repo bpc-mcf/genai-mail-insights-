@@ -9,6 +9,7 @@
     "@cap-js/hana": "1.6.1",
     "@langchain/community": "0.3.30",
     "@langchain/core": "0.3.36",
+    "@sap_oss/alert-notification-client": "^1.14.0",
     "@sap-ai-sdk/ai-api": "1.7.0",
     "@sap-ai-sdk/langchain": "1.7.0",
     "@sap-cloud-sdk/connectivity": "3.26.0",

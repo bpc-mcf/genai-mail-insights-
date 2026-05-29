@@ -8,7 +8,7 @@ export class MailReceiver {
 		console.log('📧 [MailReceiver] Constructor aufgerufen');
 		this.imap = new Imap({
 			user: 'service@mcf.bpc.ag',
-			password: 'B/mi29QH$+wAhtfDdOXy',
+			password: 'pwUF6dGp473L8ubYpwAA6cpLdEDhsMVL',
 			host: 'imap.ionos.de',
 			port: 993,
 			tls: true,

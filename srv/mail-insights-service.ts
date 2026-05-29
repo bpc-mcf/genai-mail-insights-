@@ -23,15 +23,14 @@ export default class MailInsights extends cds.ApplicationService {
 		await super.init();
 		
 		this.transporter = nodemailer.createTransport({
-			host: "smtp.gmail.com",
+			host: "smtp.ionos.de",
 			port: 587,
 			secure: false,
 			auth: {
-				user: "saraasalhaa123@gmail.com",
-				pass: "nyxy gliw johq yjad"
+			user: "service@mcf.bpc.ag",
+			pass: "pwUF6dGp473L8ubYpwAA6cpLdEDhsMVL"  // ← GENAU SO!
 			}
 		});
-
 		this.on("getMails", this.onGetMails);
 		this.on("getMail", this.onGetMail);
 		this.on("addMails", this.onAddMails);
@@ -236,7 +235,7 @@ export default class MailInsights extends cds.ApplicationService {
 	}): Promise<any> => {
 		try {
 			const mailOptions = {
-				from: "saraasalhaa123@gmail.com",
+				from: "service@mcf.bpc.ag",
 				to: emailData.recipient,
 				subject: emailData.subject,
 				html: `
