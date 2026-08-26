@@ -11,7 +11,7 @@
 		},
 		"dataSources": {
 			"appService": {
-				"uri": "api/odata/v4/mail-insights/",
+				"uri": "/api/odata/v4/mail-insights/",
 				"type": "OData",
 				"settings": {
 					"odataVersion": "4.0"

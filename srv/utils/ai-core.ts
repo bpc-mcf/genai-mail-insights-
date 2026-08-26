@@ -61,6 +61,15 @@ export const getAppName = (): string => {
   }
 };
 
+export const hasAiCoreBinding = (): boolean => {
+	try {
+		xsenv.getServices({ aicore: { tag: "aicore" } });
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
 /**
  * Creates a new resource group in the AI core instance for the application
  * @param {string} resourceGroupId - The application's resource group id

@@ -85,17 +85,7 @@
       },
       "[hybrid]": {
         "auth": {
-          "kind": "mocked",
-          "users": {
-            "arugen": {
-              "password": "pass",
-              "roles": [
-                "Member",
-                "Admin",
-                "system-user"
-              ]
-            }
-          }
+          "kind": "dummy"
         }
       }
     }

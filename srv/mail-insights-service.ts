@@ -8,7 +8,7 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { OutputFixingParser } from "langchain/output_parsers";
 
-import { getAppName, checkOrPrepareDeployments } from "./utils/ai-core.js";
+import { getAppName, checkOrPrepareDeployments, hasAiCoreBinding } from "./utils/ai-core.js";
 import { IBaseMail, IProcessedMail, IStoredMail, IAction, MailWithSimilarity } from "./types.js";
 import * as schemas from "./schemas.js";
 import { ACTIONS } from "./constants.js";
@@ -41,16 +41,19 @@ export default class MailInsights extends cds.ApplicationService {
 		this.on("fetchEmails", this.fetchAndImportEmails);
 
 		this.resourceGroupId = getAppName();
-		checkOrPrepareDeployments(this.resourceGroupId);
+		if (hasAiCoreBinding()) {
+			checkOrPrepareDeployments(this.resourceGroupId);
 
-		// Beim Start E-Mails abrufen
-		(async () => {
-			try {
-				await this.fetchAndImportEmails();
-			} catch (err: any) {
-				console.error("Initial fetch failed:", err);
-			}
-		})();
+			(async () => {
+				try {
+					await this.fetchAndImportEmails();
+				} catch (err: any) {
+					console.error("Initial fetch failed:", err);
+				}
+			})();
+		} else {
+			console.warn("AI Core binding not found; skipping automatic email import.");
+		}
 	}
 
 	private onGetMails = async (req: cds.Request): Promise<IBaseMail | Error> => {
