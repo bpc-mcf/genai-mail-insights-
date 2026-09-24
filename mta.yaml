@@ -53,6 +53,8 @@ modules:
       app-name: genai-mail-insights-api-${space}
       memory: 256MB
       disk-quota: 1024MB
+      routes:
+        - route: genai-mail-api-${space}.${default-domain}
     properties:
       appDomain: ~{genai-mail-insights-approuter/app-domain}
       srvUrl: "https://${app-name}.${default-domain}"

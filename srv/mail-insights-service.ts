@@ -145,7 +145,14 @@ export default class MailInsights extends cds.ApplicationService {
 		try {
 			const { Mails } = this.entities;
 			const { mails, rag } = req.data;
-			const mailBatch = await this.generateInsights(mails, rag);
+			const mailBatch = hasAiCoreBinding()
+				? await this.generateInsights(mails, rag)
+				: mails.map((mail: IBaseMail) => ({
+					...mail,
+					ID: mail.ID ?? crypto.randomUUID(),
+					sender: mail.senderEmailAddress,
+					responded: false
+				}));
 
 			await INSERT.into(Mails).entries(mailBatch);
 
